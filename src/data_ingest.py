@@ -21,15 +21,20 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     out["revenue"] = pd.to_numeric(out["revenue"], errors="coerce").fillna(0.0)
     out["support_tickets"] = pd.to_numeric(out["support_tickets"], errors="coerce").fillna(0).astype(int)
 
-    # Dates
+    # Dates - normalize to timezone-naive
     if not is_datetime(out["last_login"]):
         out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce")
-    # Normalize timezone to naive UTC to avoid tz-aware vs tz-naive subtraction
-    if hasattr(out["last_login"].dt, "tz") and out["last_login"].dt.tz is not None:
+    
+    # Remove timezone info completely
+    if out["last_login"].dt.tz is not None:
         out["last_login"] = out["last_login"].dt.tz_convert("UTC").dt.tz_localize(None)
     else:
-        out["last_login"] = out["last_login"].dt.tz_localize(None)
-    out["last_login"] = out["last_login"].fillna(pd.Timestamp.utcnow().tz_localize(None))
+        # Already naive, but ensure it's truly naive
+        out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce").dt.tz_localize(None)
+    
+    # Fill missing with naive UTC now
+    naive_now = pd.Timestamp.now(tz=None)
+    out["last_login"] = out["last_login"].fillna(naive_now)
 
     # Labels optional for inference: fill with 0 if missing
     if out["label"].isna().any():

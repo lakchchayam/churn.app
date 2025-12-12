@@ -3,15 +3,16 @@ import pandas as pd
 def build_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
 
-    # Parse last_login and force timezone-naive UTC
-    out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce")
-    if out["last_login"].dt.tz is not None:
-        out["last_login"] = out["last_login"].dt.tz_convert("UTC").dt.tz_localize(None)
-    else:
-        out["last_login"] = out["last_login"].dt.tz_localize(None)
+    # Ensure last_login is timezone-naive
+    if "last_login" in out.columns:
+        if out["last_login"].dt.tz is not None:
+            out["last_login"] = out["last_login"].dt.tz_convert("UTC").dt.tz_localize(None)
+        else:
+            # Already naive, ensure it stays naive
+            out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce").dt.tz_localize(None)
 
-    # Create NOW as timezone-naive
-    now = pd.Timestamp.utcnow().replace(tzinfo=None)
+    # Create NOW as timezone-naive (use now() instead of utcnow())
+    now = pd.Timestamp.now(tz=None)
 
     # recency calculation
     out["recency"] = (now - out["last_login"]).dt.days.clip(lower=0)
