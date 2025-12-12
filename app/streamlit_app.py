@@ -118,7 +118,22 @@ try:
     preds_with_risk = risk_buckets(preds)
     st.dataframe(preds_with_risk)
 except Exception as e:  # noqa: BLE001
-    st.error(f"Error during prediction: {e}")
+    error_msg = str(e)
+    st.error(f"Error during prediction: {error_msg}")
+    
+    # Show helpful message about CSV format
+    st.info("""
+    **📋 Required CSV Format:**
+    
+    Your CSV must have these exact column names:
+    - `user_id` (string)
+    - `last_login` (date: YYYY-MM-DD)
+    - `num_sessions` (number)
+    - `revenue` (number)
+    - `support_tickets` (number)
+    - `label` (0 or 1, optional for inference)
+    
+    **Current CSV columns:** """ + ", ".join(raw_df.columns.tolist()))
     st.stop()
 
 section_header("4) Explain & Recommend")

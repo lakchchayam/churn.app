@@ -9,7 +9,13 @@ REQUIRED_COLUMNS = ["user_id", "last_login", "num_sessions", "revenue", "support
 def validate_columns(df: pd.DataFrame) -> None:
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
-        raise ValueError(f"Missing required columns: {missing}")
+        available = list(df.columns)
+        raise ValueError(
+            f"Missing required columns: {missing}\n"
+            f"Available columns in your CSV: {available}\n"
+            f"Required columns: {REQUIRED_COLUMNS}\n"
+            f"Please ensure your CSV has these exact column names."
+        )
 
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
