@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Churn Intelligence Web</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Churn Intelligence Platform</p>
+      <h1>Predict, explain, and act on churn risk in minutes.</h1>
+      <p class="sub">Upload your customer CSV, get ML churn risk, LLM explanations, and ready-to-run actions.</p>
+      <div class="hero-actions">
+        <label class="file-label">
+          <input type="file" id="fileInput" accept=".csv" />
+          <span>Upload CSV</span>
+        </label>
+        <button id="btnUpload">Predict Now</button>
+      </div>
+      <p class="hint">API must be running at <code>http://127.0.0.1:8000/predict</code>. Sample file: <code>data/sample_customers.csv</code>.</p>
+    </div>
+    <div class="hero-card">
+      <h3>Why this matters</h3>
+      <ul>
+        <li>Retain revenue by catching high-risk users early.</li>
+        <li>Explainable drivers for CS, Growth, and Product.</li>
+        <li>Rule + LLM actions to trigger playbooks fast.</li>
+      </ul>
+      <div class="credit">Built by <strong>you</strong> — share the link with recruiters to demo live.</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card steps">
+      <h2>How to use</h2>
+      <ol>
+        <li>Start the API: <code>uvicorn api.server:app --host 127.0.0.1 --port 8000</code></li>
+        <li>Start static site: <code>cd web && python -m http.server 3000</code></li>
+        <li>Open <code>http://127.0.0.1:3000</code> → upload CSV → view results.</li>
+        <li>For LLM explanations, set <code>OPENAI_API_KEY</code> before starting API.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <small>Churn Intelligence · Static Web UI</small>
+      <small class="muted">Built by you · Shareable demo for recruiters</small>
+    </div>
+    <div class="footer-links">
+      <span>Deploy free: GitHub Pages (static), Vercel/Netlify (static), Render/Fly/Streamlit Cloud (API+UI)</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    const fileInput = document.getElementById('fileInput');
+    const btnUpload = document.getElementById('btnUpload');
+    const resultsDiv = document.getElementById('results');
+
+    function parseCSV(csvText) {
+      const lines = csvText.trim().split(/\r?\n/).filter(line => line.trim());
+      if (lines.length === 0) return [];
+      
+      const headers = lines[0].split(',').map(h => h.trim());
+      const required = ['user_id', 'last_login', 'num_sessions', 'revenue', 'support_tickets', 'label'];
+      const missing = required.filter(col => !headers.includes(col));
+      if (missing.length > 0) {
+        throw new Error(`Missing columns: ${missing.join(', ')}`);
+      }
+      
+      return lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = values[i] || '';
+        });
+        
+        // Convert types
+        obj.num_sessions = parseInt(obj.num_sessions) || 0;
+        obj.revenue = parseFloat(obj.revenue) || 0;
+        obj.support_tickets = parseInt(obj.support_tickets) || 0;
+        obj.label = parseInt(obj.label) || 0;
+        
+        return obj;
+      }).filter(row => row.user_id); // Remove empty rows
+    }
+
+    btnUpload.addEventListener('click', async () => {
+      const file = fileInput.files?.[0];
+      if (!file) {
+        alert('Please select a CSV file.');
+        return;
+      }
+      const text = await file.text();
+      resultsDiv.innerHTML = 'Loading...';
+      try {
+        const customers = parseCSV(text);
+        if (customers.length === 0) {
+          throw new Error('No valid customers found in CSV');
+        }
+        // Auto-detect API URL (works for both local and Render)
+        const apiUrl = window.location.origin + '/predict';
+        const resp = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ include_explanations: true, customers })
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        const data = await resp.json();
+        
+        // Create nice table
+        let html = '<table class="results-table"><thead><tr><th>User ID</th><th>Churn Risk</th><th>Probability</th><th>Top Drivers</th><th>Recommended Action</th><th>Explanation</th></tr></thead><tbody>';
+        
+        data.results.forEach(result => {
+          const prob = (result.churn_prob * 100).toFixed(1);
+          const riskLevel = result.churn_prob > 0.66 ? 'High' : result.churn_prob > 0.33 ? 'Medium' : 'Low';
+          const riskClass = riskLevel.toLowerCase();
+          const drivers = result.top_drivers || {};
+          const action = result.recommended_action || {};
+          const explanation = result.llm_explanation || 'No explanation available';
+          
+          html += `<tr class="risk-${riskClass}">
+            <td><strong>${result.user_id}</strong></td>
+            <td><span class="badge badge-${riskClass}">${riskLevel}</span></td>
+            <td>${prob}%</td>
+            <td><small>Recency: ${drivers.recency || 'N/A'} days<br>
+                Sessions: ${drivers.session_rate?.toFixed(2) || 'N/A'}<br>
+                Support: ${drivers.support_rate?.toFixed(2) || 'N/A'}</small></td>
+            <td><strong>${action.action || 'N/A'}</strong><br><small>${action.reason || ''}</small></td>
+            <td><small>${explanation}</small></td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        resultsDiv.innerHTML = html;
+      } catch (err) {
+        resultsDiv.innerHTML = `<span class="error">${err}</span>`;
+      }
+    });
+  </script>
+</body>
+</html>
+

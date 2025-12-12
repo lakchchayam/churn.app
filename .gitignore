@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+# *.pkl  # Commented out - need model for deployment
+*.parquet
+.DS_Store
+*.log
+metrics.json
+.pytest_cache/
+.coverage
+htmlcov/
+
