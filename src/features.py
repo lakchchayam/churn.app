@@ -3,16 +3,26 @@ import pandas as pd
 def build_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
 
-    # Ensure last_login is timezone-naive
-    if "last_login" in out.columns:
-        if out["last_login"].dt.tz is not None:
-            out["last_login"] = out["last_login"].dt.tz_convert("UTC").dt.tz_localize(None)
-        else:
-            # Already naive, ensure it stays naive
-            out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce").dt.tz_localize(None)
+    # Check required columns
+    required = ["last_login", "num_sessions", "revenue", "support_tickets", "user_id"]
+    missing = [col for col in required if col not in out.columns]
+    if missing:
+        raise ValueError(f"Missing required columns for features: {missing}")
 
-    # Create NOW as timezone-naive (use now() instead of utcnow())
+    # Ensure last_login is timezone-naive datetime
+    if not pd.api.types.is_datetime64_any_dtype(out["last_login"]):
+        out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce")
+    
+    # Remove timezone if present
+    if out["last_login"].dt.tz is not None:
+        out["last_login"] = out["last_login"].dt.tz_convert("UTC").dt.tz_localize(None)
+    else:
+        # Ensure it's truly naive
+        out["last_login"] = pd.to_datetime(out["last_login"], errors="coerce").dt.tz_localize(None)
+    
+    # Fill missing dates with current time
     now = pd.Timestamp.now(tz=None)
+    out["last_login"] = out["last_login"].fillna(now)
 
     # recency calculation
     out["recency"] = (now - out["last_login"]).dt.days.clip(lower=0)
