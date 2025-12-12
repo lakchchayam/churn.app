@@ -63,6 +63,8 @@ with st.sidebar:
         st.session_state["uploaded_df"] = load_sample()
         st.success("Loaded sample data.")
     st.info("Columns required: user_id, last_login, num_sessions, revenue, support_tickets, label (optional for inference)")
+    st.markdown("---")
+    st.markdown("**Built by Lakshyam** 🚀")
 
 section_header("1) Upload CSV")
 upload = st.file_uploader("Upload customer CSV", type=["csv"])
@@ -151,5 +153,6 @@ st.markdown("""
 
 **Built by Lakshyam** 🚀
 """)
-st.caption("Churn Intelligence Platform · Powered by ML + LLM · Streamlit")
+st.markdown("---")
+st.caption("Churn Intelligence Platform · Powered by ML + LLM · Built by Lakshyam · Streamlit")
 
