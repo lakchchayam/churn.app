@@ -26,9 +26,34 @@ def load_sample():
 def load_model():
     model_path = Path("models/churn_model.pkl")
     if not model_path.exists():
-        st.warning("Model not found. Please run training first (src/train.py). Using a dummy model that outputs 0.5.")
-        return None
-    return predict.load_model(model_path)
+        st.warning("Model not found. Training model now...")
+        try:
+            from src import train
+            train.train_model(
+                input_csv="data/sample_customers.csv",
+                model_path=str(model_path),
+                metrics_path="metrics.json"
+            )
+            st.success("Model trained successfully!")
+        except Exception as e:
+            st.error(f"Could not train model: {e}")
+            return None
+    
+    try:
+        return predict.load_model(model_path)
+    except Exception as e:
+        st.warning(f"Model loading failed (version mismatch): {e}. Retraining...")
+        try:
+            from src import train
+            train.train_model(
+                input_csv="data/sample_customers.csv",
+                model_path=str(model_path),
+                metrics_path="metrics.json"
+            )
+            return predict.load_model(model_path)
+        except Exception as retrain_error:
+            st.error(f"Could not retrain model: {retrain_error}")
+            return None
 
 
 @st.cache_data(show_spinner=False)
