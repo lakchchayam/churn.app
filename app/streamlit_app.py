@@ -161,11 +161,14 @@ if st.button("Recompute Churn"):
     sim_df = row.to_frame().T
     sim_df["num_sessions"] = sim_num_sessions
     sim_df["support_tickets"] = sim_support
-    sim_df["revenue"] = sim_revenue
-    sim_feat = prepare_features(sim_df)
-    sim_pred = run_predictions(sim_feat, model).iloc[0]
+    sim_df["revenue"] = float(sim_revenue)
+    # Ensure all required columns are present
+    if "last_login" not in sim_df.columns or pd.isna(sim_df["last_login"].iloc[0]):
+        sim_df["last_login"] = pd.Timestamp.now()
+    sim_pred = run_predictions(sim_df, model).iloc[0]
     st.success(f"New churn probability: {sim_pred['churn_prob']:.2f}")
-    sim_action = actions.recommend_action(sim_feat.iloc[0])
+    # Get action from cleaned dataframe row, not feature dataframe
+    sim_action = actions.recommend_action(sim_df.iloc[0])
     st.json(sim_action)
 
 st.markdown("---")
