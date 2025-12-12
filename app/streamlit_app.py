@@ -33,12 +33,12 @@ def prepare_features(df: pd.DataFrame):
 
 
 @st.cache_data(show_spinner=False)
-def run_predictions(df: pd.DataFrame, model):
-    if model is None:
+def run_predictions(df: pd.DataFrame, _model):
+    if _model is None:
         out = df[["user_id"]].copy()
         out["churn_prob"] = 0.5
         return out
-    return predict.predict_df(df, model)
+    return predict.predict_df(df, _model)
 
 
 @st.cache_data(show_spinner=False)
