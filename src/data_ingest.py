@@ -47,12 +47,15 @@ def validate_columns(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     missing = [c for c in REQUIRED_COLUMNS if c not in df_mapped.columns]
     if missing:
         available = list(df.columns)
+        # Show what was mapped
+        mapped_info = f"Mapped: {mapping}" if mapping else "No columns were auto-mapped."
         raise ValueError(
             f"Missing required columns: {missing}\n"
             f"Available columns in your CSV: {available}\n"
             f"Required columns: {REQUIRED_COLUMNS}\n"
-            f"Tried to auto-map but couldn't find: {missing}\n"
-            f"Please rename your columns or ensure they match common names."
+            f"{mapped_info}\n"
+            f"Couldn't auto-map: {missing}\n"
+            f"Please ensure your CSV has columns that match: user_id/customer_id, last_login/last_interaction, num_sessions/usage_frequency, revenue/total_spend, support_tickets/support_calls, label/churn"
         )
     
     return df_mapped, mapping

@@ -115,8 +115,10 @@ try:
     _, mapping = map_columns(raw_df)
     if mapping:
         st.success(f"✅ Auto-mapped columns: {mapping}")
-except Exception:
-    pass
+    else:
+        st.info("💡 Tip: If columns don't match, the app will try to auto-detect common column names")
+except Exception as e:
+    st.warning(f"Column mapping check: {e}")
 
 section_header("3) Predict Churn")
 try:
