@@ -1,7 +1,11 @@
 import os
+import sys
 import json
 import tempfile
 from pathlib import Path
+
+# Add parent directory to path for Streamlit Cloud
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pandas as pd
 import streamlit as st
