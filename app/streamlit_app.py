@@ -148,9 +148,14 @@ section_header("6) What-If Simulator")
 sim_user = st.selectbox("Pick a user to simulate", preds_with_risk["user_id"].astype(str))
 row = cleaned[cleaned["user_id"].astype(str) == str(sim_user)].iloc[0].copy()
 
-sim_num_sessions = st.slider("num_sessions", 0, 200, int(row["num_sessions"]))
-sim_support = st.slider("support_tickets", 0, 10, int(row["support_tickets"]))
-sim_revenue = st.slider("revenue", 0, 1000, float(row["revenue"]))
+# Safe defaults for sliders
+num_sessions_val = int(row.get("num_sessions", 0)) if pd.notna(row.get("num_sessions")) else 0
+support_val = int(row.get("support_tickets", 0)) if pd.notna(row.get("support_tickets")) else 0
+revenue_val = float(row.get("revenue", 0)) if pd.notna(row.get("revenue")) else 0.0
+
+sim_num_sessions = st.slider("num_sessions", 0, 200, num_sessions_val)
+sim_support = st.slider("support_tickets", 0, 10, support_val)
+sim_revenue = st.slider("revenue", 0, 1000, int(revenue_val))
 
 if st.button("Recompute Churn"):
     sim_df = row.to_frame().T
