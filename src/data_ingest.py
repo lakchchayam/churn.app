@@ -7,12 +7,12 @@ REQUIRED_COLUMNS = ["user_id", "last_login", "num_sessions", "revenue", "support
 
 # Flexible column mapping - common variations
 COLUMN_MAPPINGS = {
-    "user_id": ["user_id", "userid", "user", "id", "customer_id", "customerid", "customer", "client_id"],
-    "last_login": ["last_login", "lastlogin", "last_login_date", "login_date", "last_activity", "last_activity_date", "date"],
-    "num_sessions": ["num_sessions", "numsessions", "sessions", "session_count", "total_sessions", "activity_count"],
-    "revenue": ["revenue", "total_revenue", "revenue_total", "amount", "value", "spend", "lifetime_value", "ltv"],
-    "support_tickets": ["support_tickets", "supporttickets", "tickets", "ticket_count", "support_count", "complaints", "issues"],
-    "label": ["label", "churn", "churned", "is_churn", "churn_label", "target", "y"]
+    "user_id": ["user_id", "userid", "user", "id", "customer_id", "customerid", "customer", "client_id", "customerid", "customer_id", "clientid"],
+    "last_login": ["last_login", "lastlogin", "last_login_date", "login_date", "last_activity", "last_activity_date", "date", "last_interaction", "lastinteraction", "interaction_date", "activity_date"],
+    "num_sessions": ["num_sessions", "numsessions", "sessions", "session_count", "total_sessions", "activity_count", "usage_frequency", "usagefrequency", "frequency", "engagement", "activity"],
+    "revenue": ["revenue", "total_revenue", "revenue_total", "amount", "value", "spend", "lifetime_value", "ltv", "total_spend", "totalspend", "payment", "billing"],
+    "support_tickets": ["support_tickets", "supporttickets", "tickets", "ticket_count", "support_count", "complaints", "issues", "support_calls", "supportcalls", "calls", "support_requests"],
+    "label": ["label", "churn", "churned", "is_churn", "churn_label", "target", "y", "churn_status", "churnstatus"]
 }
 
 
