@@ -16,17 +16,23 @@ COLUMN_MAPPINGS = {
 }
 
 
-def map_columns(df: pd.DataFrame) -> pd.DataFrame:
+def map_columns(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     """Automatically map common column names to required format"""
     df_mapped = df.copy()
     mapping_applied = {}
     
+    def normalize_name(name: str) -> str:
+        """Normalize column name for comparison"""
+        return str(name).lower().strip().replace(" ", "_").replace("-", "_")
+    
     for required_col, possible_names in COLUMN_MAPPINGS.items():
         if required_col not in df_mapped.columns:
-            # Try to find matching column (case-insensitive)
+            # Try to find matching column (case-insensitive, space/dash normalized)
             for col in df_mapped.columns:
-                col_lower = str(col).lower().strip()
-                if col_lower in [name.lower() for name in possible_names]:
+                col_normalized = normalize_name(col)
+                possible_normalized = [normalize_name(name) for name in possible_names]
+                
+                if col_normalized in possible_normalized:
                     df_mapped[required_col] = df_mapped[col]
                     mapping_applied[required_col] = col
                     break
