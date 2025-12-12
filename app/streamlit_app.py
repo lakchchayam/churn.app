@@ -109,6 +109,15 @@ raw_df = st.session_state["uploaded_df"]
 section_header("2) Preview")
 st.dataframe(raw_df.head())
 
+# Show column mapping if applied
+try:
+    from src.data_ingest import map_columns
+    _, mapping = map_columns(raw_df)
+    if mapping:
+        st.success(f"✅ Auto-mapped columns: {mapping}")
+except Exception:
+    pass
+
 section_header("3) Predict Churn")
 try:
     cleaned = data_ingest.clean_dataframe(raw_df)
@@ -125,15 +134,18 @@ except Exception as e:  # noqa: BLE001
     st.info("""
     **📋 Required CSV Format:**
     
-    Your CSV must have these exact column names:
-    - `user_id` (string)
-    - `last_login` (date: YYYY-MM-DD)
-    - `num_sessions` (number)
-    - `revenue` (number)
-    - `support_tickets` (number)
-    - `label` (0 or 1, optional for inference)
+    Your CSV should have columns like:
+    - **User ID**: `user_id`, `userid`, `customer_id`, `id`, etc.
+    - **Last Login**: `last_login`, `lastlogin`, `login_date`, `date`, etc.
+    - **Sessions**: `num_sessions`, `sessions`, `session_count`, etc.
+    - **Revenue**: `revenue`, `total_revenue`, `amount`, `spend`, etc.
+    - **Support**: `support_tickets`, `tickets`, `ticket_count`, etc.
+    - **Churn Label**: `label`, `churn`, `churned`, `target` (optional)
     
-    **Current CSV columns:** """ + ", ".join(raw_df.columns.tolist()))
+    **Current CSV columns:** """ + ", ".join(raw_df.columns.tolist()) + """
+    
+    **💡 Tip:** The app will try to auto-detect and map common column names!
+    """)
     st.stop()
 
 section_header("4) Explain & Recommend")

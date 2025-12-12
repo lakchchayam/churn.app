@@ -5,22 +5,56 @@ from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
 REQUIRED_COLUMNS = ["user_id", "last_login", "num_sessions", "revenue", "support_tickets", "label"]
 
+# Flexible column mapping - common variations
+COLUMN_MAPPINGS = {
+    "user_id": ["user_id", "userid", "user", "id", "customer_id", "customerid", "customer", "client_id"],
+    "last_login": ["last_login", "lastlogin", "last_login_date", "login_date", "last_activity", "last_activity_date", "date"],
+    "num_sessions": ["num_sessions", "numsessions", "sessions", "session_count", "total_sessions", "activity_count"],
+    "revenue": ["revenue", "total_revenue", "revenue_total", "amount", "value", "spend", "lifetime_value", "ltv"],
+    "support_tickets": ["support_tickets", "supporttickets", "tickets", "ticket_count", "support_count", "complaints", "issues"],
+    "label": ["label", "churn", "churned", "is_churn", "churn_label", "target", "y"]
+}
 
-def validate_columns(df: pd.DataFrame) -> None:
-    missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
+
+def map_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Automatically map common column names to required format"""
+    df_mapped = df.copy()
+    mapping_applied = {}
+    
+    for required_col, possible_names in COLUMN_MAPPINGS.items():
+        if required_col not in df_mapped.columns:
+            # Try to find matching column (case-insensitive)
+            for col in df_mapped.columns:
+                col_lower = str(col).lower().strip()
+                if col_lower in [name.lower() for name in possible_names]:
+                    df_mapped[required_col] = df_mapped[col]
+                    mapping_applied[required_col] = col
+                    break
+    
+    return df_mapped, mapping_applied
+
+
+def validate_columns(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """Validate and auto-map columns"""
+    df_mapped, mapping = map_columns(df)
+    
+    missing = [c for c in REQUIRED_COLUMNS if c not in df_mapped.columns]
     if missing:
         available = list(df.columns)
         raise ValueError(
             f"Missing required columns: {missing}\n"
             f"Available columns in your CSV: {available}\n"
             f"Required columns: {REQUIRED_COLUMNS}\n"
-            f"Please ensure your CSV has these exact column names."
+            f"Tried to auto-map but couldn't find: {missing}\n"
+            f"Please rename your columns or ensure they match common names."
         )
+    
+    return df_mapped, mapping
 
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    validate_columns(df)
-    out = df.copy()
+    out, mapping = validate_columns(df)
+    out = out.copy()
     # Type conversions
     out["user_id"] = out["user_id"].astype(str)
     out["num_sessions"] = pd.to_numeric(out["num_sessions"], errors="coerce").fillna(0).astype(int)
