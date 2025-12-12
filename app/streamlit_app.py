@@ -81,9 +81,9 @@ st.dataframe(raw_df.head())
 section_header("3) Predict Churn")
 try:
     cleaned = data_ingest.clean_dataframe(raw_df)
-    feat_df = prepare_features(cleaned)
     model = load_model()
-    preds = run_predictions(feat_df, model)
+    # Pass cleaned dataframe (with all columns) to predict_df, not feature dataframe
+    preds = run_predictions(cleaned, model)
     preds_with_risk = risk_buckets(preds)
     st.dataframe(preds_with_risk)
 except Exception as e:  # noqa: BLE001
