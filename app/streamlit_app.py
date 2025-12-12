@@ -132,5 +132,24 @@ if st.button("Recompute Churn"):
     sim_action = actions.recommend_action(sim_feat.iloc[0])
     st.json(sim_action)
 
-st.caption("Churn Intelligence Platform · Streamlit")
+st.markdown("---")
+st.markdown("### 💡 What is this platform?")
+st.markdown("""
+**Churn Intelligence Platform** is an ML-powered solution that helps businesses:
+
+- **🔮 Predict Churn Risk**: Uses Gradient Boosting ML model to predict which customers are likely to churn
+- **🤖 AI Explanations**: LLM-powered natural language explanations of why customers might churn
+- **⚡ Actionable Insights**: Rule-based + AI recommendations for retention strategies
+- **📊 Interactive Dashboard**: Visualize churn risk distribution and customer segments
+- **🎯 What-If Simulator**: Test different scenarios (sessions, support tickets, revenue) to see impact on churn probability
+
+**Use Cases:**
+- **Customer Success Teams**: Identify at-risk customers and prioritize outreach
+- **Growth Teams**: Understand churn drivers and optimize retention campaigns
+- **Product Teams**: Discover feature gaps and engagement patterns
+- **Business Analysts**: Make data-driven decisions on customer retention strategies
+
+**Built by Lakshyam** 🚀
+""")
+st.caption("Churn Intelligence Platform · Powered by ML + LLM · Streamlit")
 
